@@ -1,6 +1,9 @@
 # ResNet-D_PyTorch
 PyTorch implementation of ResNet-D from "Bag of Tricks for Image Classification with Convolutional Neural Networks" (He et al., CVPR2019) 
+
 paper: https://arxiv.org/pdf/1812.01187
+
+summary (KOR): https://bo-10000.tistory.com/133
 
 
 ## Models available
