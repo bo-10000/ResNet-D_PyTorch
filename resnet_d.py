@@ -4,9 +4,10 @@ PyTorch implementation of ResNet-18, 34, 50, 101, 152 & ResNet-D-50, 101, 152
 model names: resnet18, resnet34, resnet50, resnet101, resnet152, resnet50D, resnet101D, resnet152D
 
 ResNet Parameters(**kwargs)
+:in_channels (int, default=3): input channel dimension
 :num_classes (int, default=1000): number of class labels
 :zero_init_residual (bool, default=False): Zero-initialize the last BN in each residual branch, so that the residual branch starts with zeros, and each residual block behaves like an identity.
-:groups (int, default=1): number of groups for conv3x3
+:groups (int, default=1): number of groups for conv3x3x3
 :width_per_group (int, default=64): to change model width
 :replace_stride_with_dilation (list of bools, default=None): each element in the tuple indicates if we should replace the 2x2 stride with a dilated convolution instead
 :norm_layer (nn.Module, default=None): norm layer to use
@@ -16,9 +17,9 @@ ResNet Parameters(**kwargs)
 import torch
 import torch.nn as nn
 
-def conv3x3(in_planes, out_planes, stride=1, groups=1, dilation=1) -> nn.Conv2d:
-    """3x3 convolution with padding"""
-    return nn.Conv2d(
+def conv3x3x3(in_planes, out_planes, stride=1, groups=1, dilation=1):
+    """3x3x3 convolution with padding"""
+    return nn.Conv3d(
         in_planes,
         out_planes,
         kernel_size=3,
@@ -29,9 +30,9 @@ def conv3x3(in_planes, out_planes, stride=1, groups=1, dilation=1) -> nn.Conv2d:
         dilation=dilation,
     )
 
-def conv1x1(in_planes, out_planes, stride=1) -> nn.Conv2d:
-    """1x1 convolution"""
-    return nn.Conv2d(in_planes, out_planes, kernel_size=1, stride=stride, bias=False)
+def conv1x1x1(in_planes, out_planes, stride=1):
+    """1x1x1 convolution"""
+    return nn.Conv3d(in_planes, out_planes, kernel_size=1, stride=stride, bias=False)
 
 class BasicBlock(nn.Module):
     expansion = 1
@@ -39,16 +40,16 @@ class BasicBlock(nn.Module):
     def __init__(self, inplanes, planes, stride=1, downsample=None, groups=1, base_width=64, dilation=1, norm_layer=None):
         super().__init__()
         if norm_layer is None:
-            norm_layer = nn.BatchNorm2d
+            norm_layer = nn.BatchNorm3d
         if groups != 1 or base_width != 64:
             raise ValueError("BasicBlock only supports groups=1 and base_width=64")
         if dilation > 1:
             raise NotImplementedError("Dilation > 1 not supported in BasicBlock")
         # Both self.conv1 and self.downsample layers downsample the input when stride != 1
-        self.conv1 = conv3x3(inplanes, planes, stride)
+        self.conv1 = conv3x3x3(inplanes, planes, stride)
         self.bn1 = norm_layer(planes)
         self.relu = nn.ReLU(inplace=True)
-        self.conv2 = conv3x3(planes, planes)
+        self.conv2 = conv3x3x3(planes, planes)
         self.bn2 = norm_layer(planes)
         self.downsample = downsample
         self.stride = stride
@@ -78,14 +79,14 @@ class Bottleneck(nn.Module):
     def __init__(self, inplanes, planes, stride=1, downsample=None, groups=1, base_width=64, dilation=1, norm_layer=None):
         super().__init__()
         if norm_layer is None:
-            norm_layer = nn.BatchNorm2d
+            norm_layer = nn.BatchNorm3d
         width = int(planes * (base_width / 64.0)) * groups
         # Both self.conv2 and self.downsample layers downsample the input when stride != 1
-        self.conv1 = conv1x1(inplanes, width)
+        self.conv1 = conv1x1x1(inplanes, width)
         self.bn1 = norm_layer(width)
-        self.conv2 = conv3x3(width, width, stride, groups, dilation)
+        self.conv2 = conv3x3x3(width, width, stride, groups, dilation)
         self.bn2 = norm_layer(width)
-        self.conv3 = conv1x1(width, planes * self.expansion)
+        self.conv3 = conv1x1x1(width, planes * self.expansion)
         self.bn3 = norm_layer(planes * self.expansion)
         self.relu = nn.ReLU(inplace=True)
         self.downsample = downsample
@@ -117,12 +118,12 @@ class Bottleneck(nn.Module):
         return out
 
 class ResNet(nn.Module):
-    def __init__(self, block, layers, num_classes=1000, zero_init_residual=False, groups=1, width_per_group=64, replace_stride_with_dilation=None, norm_layer=None):
+    def __init__(self, block, layers, in_channels=3, num_classes=1000, zero_init_residual=False, groups=1, width_per_group=64, replace_stride_with_dilation=None, norm_layer=None):
         super().__init__()
 
         #parameters
         if norm_layer is None:
-            self.norm_layer = nn.BatchNorm2d
+            self.norm_layer = nn.BatchNorm3d
         else:
             self.norm_layer = norm_layer
         self.inplanes = 64
@@ -140,8 +141,8 @@ class ResNet(nn.Module):
         self.base_width = width_per_group
 
         #input stem
-        self.input_stem = self._make_input_stem()
-        self.maxpool = nn.MaxPool2d(kernel_size=3, stride=2, padding=1)
+        self.input_stem = self._make_input_stem(in_channels)
+        self.maxpool = nn.MaxPool3d(kernel_size=3, stride=2, padding=1)
 
         #stages 1~4
         self.layer1 = self._make_layer(block, 64, layers[0])
@@ -150,14 +151,14 @@ class ResNet(nn.Module):
         self.layer4 = self._make_layer(block, 512, layers[3], stride=2, dilate=replace_stride_with_dilation[2])
 
         #output layer
-        self.avgpool = nn.AdaptiveAvgPool2d((1, 1))
+        self.avgpool = nn.AdaptiveAvgPool3d((1, 1, 1))
         self.fc = nn.Linear(512 * block.expansion, num_classes)
 
         #initialization
         for m in self.modules():
-            if isinstance(m, nn.Conv2d):
+            if isinstance(m, nn.Conv3d):
                 nn.init.kaiming_normal_(m.weight, mode="fan_out", nonlinearity="relu")
-            elif isinstance(m, (nn.BatchNorm2d, nn.GroupNorm)):
+            elif isinstance(m, (nn.BatchNorm3d, nn.GroupNorm)):
                 nn.init.constant_(m.weight, 1)
                 nn.init.constant_(m.bias, 0)
 
@@ -204,14 +205,14 @@ class ResNet(nn.Module):
 
     def _make_downsample(self, planes, block, stride, norm_layer):
         return nn.Sequential(
-            conv1x1(self.inplanes, planes * block.expansion, stride),
+            conv1x1x1(self.inplanes, planes * block.expansion, stride),
             norm_layer(planes * block.expansion),
         )
 
-    def _make_input_stem(self):
+    def _make_input_stem(self, in_channels):
         norm_layer = self.norm_layer
         return nn.Sequential(
-            nn.Conv2d(3, self.inplanes, kernel_size=7, stride=2, padding=3, bias=False),
+            nn.Conv3d(in_channels, self.inplanes, kernel_size=7, stride=2, padding=3, bias=False),
             norm_layer(self.inplanes),
             nn.ReLU(inplace=True),
         )
@@ -239,25 +240,25 @@ class ResNetD(ResNet):
         if stride != 1:
             return nn.Sequential(
                 nn.AvgPool2d(2, stride=stride),
-                conv1x1(self.inplanes, planes * block.expansion),
+                conv1x1x1(self.inplanes, planes * block.expansion),
                 norm_layer(planes * block.expansion),
             )
         else:
             return nn.Sequential(
-                conv1x1(self.inplanes, planes * block.expansion),
+                conv1x1x1(self.inplanes, planes * block.expansion),
                 norm_layer(planes * block.expansion),
             )
 
-    def _make_input_stem(self): #conv7x7 -> 3 conv3x3
+    def _make_input_stem(self, in_channels): #conv7x7 -> 3 conv3x3x3
         norm_layer = self.norm_layer
         return nn.Sequential( 
-            nn.Conv2d(3, self.inplanes // 2, kernel_size=3, stride=2, padding=1, bias=False),
+            nn.Conv3d(in_channels, self.inplanes // 2, kernel_size=3, stride=2, padding=1, bias=False),
             norm_layer(self.inplanes // 2),
             nn.ReLU(inplace=True),
-            nn.Conv2d(self.inplanes // 2, self.inplanes // 2, kernel_size=3, padding=1, bias=False),
+            nn.Conv3d(self.inplanes // 2, self.inplanes // 2, kernel_size=3, padding=1, bias=False),
             norm_layer(self.inplanes // 2),
             nn.ReLU(inplace=True),
-            nn.Conv2d(self.inplanes // 2, self.inplanes, kernel_size=3, padding=1, bias=False),
+            nn.Conv3d(self.inplanes // 2, self.inplanes, kernel_size=3, padding=1, bias=False),
             norm_layer(self.inplanes),
             nn.ReLU(inplace=True),
         )
