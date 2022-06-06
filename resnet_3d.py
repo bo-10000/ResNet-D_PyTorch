@@ -1,5 +1,5 @@
 """
-PyTorch implementation of ResNet-18, 34, 50, 101, 152 & ResNet-D-50, 101, 152
+PyTorch implementation of 3D ResNet-18, 34, 50, 101, 152 & ResNet-D-50, 101, 152
 
 model names: resnet18, resnet34, resnet50, resnet101, resnet152, resnet50D, resnet101D, resnet152D
 
