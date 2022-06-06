@@ -117,7 +117,7 @@ class Bottleneck(nn.Module):
 
         return out
 
-class ResNet(nn.Module):
+class ResNet3D(nn.Module):
     def __init__(self, block, layers, in_channels=3, num_classes=1000, zero_init_residual=False, groups=1, width_per_group=64, replace_stride_with_dilation=None, norm_layer=None):
         super().__init__()
 
@@ -235,7 +235,7 @@ class ResNet(nn.Module):
 
         return x
 
-class ResNetD(ResNet):
+class ResNetD3D(ResNet3D):
     def _make_downsample(self, planes, block, stride, norm_layer): #conv1x1 -> AvgPool+conv1x1
         if stride != 1:
             return nn.Sequential(
@@ -264,27 +264,27 @@ class ResNetD(ResNet):
         )
 
 #ResNet
-def resnet18(**kwargs):
-    return ResNet(BasicBlock, [2, 2, 2, 2], **kwargs)
+def resnet3d18(**kwargs):
+    return ResNet3D(BasicBlock, [2, 2, 2, 2], **kwargs)
 
-def resnet34(**kwargs):
-    return ResNet(BasicBlock, [3, 4, 6, 3], **kwargs)
+def resnet3d34(**kwargs):
+    return ResNet3D(BasicBlock, [3, 4, 6, 3], **kwargs)
 
-def resnet50(**kwargs):
-    return ResNet(Bottleneck, [3, 4, 6, 3], **kwargs)
+def resnet3d50(**kwargs):
+    return ResNet3D(Bottleneck, [3, 4, 6, 3], **kwargs)
 
-def resnet101(**kwargs):
-    return ResNet(Bottleneck, [3, 4, 23, 3], **kwargs)
+def resnet3d101(**kwargs):
+    return ResNet3D(Bottleneck, [3, 4, 23, 3], **kwargs)
 
-def resnet152(**kwargs):
-    return ResNet(Bottleneck, [3, 8, 36, 3], **kwargs)
+def resnet3d152(**kwargs):
+    return ResNet3D(Bottleneck, [3, 8, 36, 3], **kwargs)
 
 #ResNet-D
-def resnet50D(**kwargs):
-    return ResNetD(Bottleneck, [3, 4, 6, 3], **kwargs)
+def resnet3d50D(**kwargs):
+    return ResNetD3D(Bottleneck, [3, 4, 6, 3], **kwargs)
 
-def resnet101D(**kwargs):
-    return ResNetD(Bottleneck, [3, 4, 23, 3], **kwargs)
+def resnet3d101D(**kwargs):
+    return ResNetD3D(Bottleneck, [3, 4, 23, 3], **kwargs)
 
-def resnet152D(**kwargs):
-    return ResNetD(Bottleneck, [3, 8, 36, 3], **kwargs)
+def resnet3d152D(**kwargs):
+    return ResNetD3D(Bottleneck, [3, 8, 36, 3], **kwargs)
