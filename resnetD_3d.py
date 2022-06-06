@@ -236,10 +236,10 @@ class ResNet3D(nn.Module):
         return x
 
 class ResNetD3D(ResNet3D):
-    def _make_downsample(self, planes, block, stride, norm_layer): #conv1x1 -> AvgPool+conv1x1
+    def _make_downsample(self, planes, block, stride, norm_layer): #conv1x1x1 -> AvgPool+conv1x1x1
         if stride != 1:
             return nn.Sequential(
-                nn.AvgPool3d(2, stride=stride),
+                nn.AvgPool3d(2, stride=stride, ceil_mode=True),
                 conv1x1x1(self.inplanes, planes * block.expansion),
                 norm_layer(planes * block.expansion),
             )
@@ -249,7 +249,7 @@ class ResNetD3D(ResNet3D):
                 norm_layer(planes * block.expansion),
             )
 
-    def _make_input_stem(self, in_channels): #conv7x7 -> 3 conv3x3x3
+    def _make_input_stem(self, in_channels): #conv7x7x7 -> 3 conv3x3x3
         norm_layer = self.norm_layer
         return nn.Sequential( 
             nn.Conv3d(in_channels, self.inplanes // 2, kernel_size=3, stride=2, padding=1, bias=False),
