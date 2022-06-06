@@ -239,7 +239,7 @@ class ResNetD3D(ResNet3D):
     def _make_downsample(self, planes, block, stride, norm_layer): #conv1x1 -> AvgPool+conv1x1
         if stride != 1:
             return nn.Sequential(
-                nn.AvgPool2d(2, stride=stride),
+                nn.AvgPool3d(2, stride=stride),
                 conv1x1x1(self.inplanes, planes * block.expansion),
                 norm_layer(planes * block.expansion),
             )
