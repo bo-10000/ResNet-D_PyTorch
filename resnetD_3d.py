@@ -1,7 +1,7 @@
 """
 PyTorch implementation of 3D ResNet-18, 34, 50, 101, 152 & ResNet-D-50, 101, 152
 
-model names: resnet18, resnet34, resnet50, resnet101, resnet152, resnet50D, resnet101D, resnet152D
+model names: resnet3d18, resnet3d34, resnet3d50, resnet3d101, resnet3d152, resnet3d50D, resnet3d101D, resnet3d152D
 
 ResNet Parameters(**kwargs)
 :in_channels (int, default=3): input channel dimension
