@@ -5,6 +5,8 @@ paper: https://arxiv.org/pdf/1812.01187
 
 summary (KOR): https://bo-10000.tistory.com/133
 
+</br>
+
 <img src="https://img1.daumcdn.net/thumb/R1280x0/?scode=mtistory2&fname=https%3A%2F%2Fblog.kakaocdn.net%2Fdn%2FceLiVZ%2FbtrDZItgCfy%2FyFb3QyfZOAhSIDOm1VK0U1%2Fimg.png" height="400px"></img>
 
 </br>
@@ -32,6 +34,8 @@ summary (KOR): https://bo-10000.tistory.com/133
 - `resnet3d101D`
 - `resnet3d152D`
 
+</br>
+
 ## How to use
 ```
 #2D models
@@ -44,6 +48,8 @@ from resnetD_3d import *
 
 model = resnet3d50D()
 ```
+
+</br>
 
 ## Model parameters
 - `in_channels (int, defauult=3)`: input channel dimension
